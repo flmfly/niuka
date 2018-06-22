@@ -84,7 +84,7 @@ public class Login {
 			conn = (HttpURLConnection) new URL(userUrlSearch + "?openId=" + openId).openConnection();
 			conn.setRequestProperty("SessionKey", "44054f97-9929-4017-97c9-0becd4196283");
 
-			if (conn.getContentLength() > 0) {
+			if (conn.getResponseCode() == 200) {
 				is = conn.getInputStream();
 				user = GSON.fromJson(new InputStreamReader(is), User.class);
 			}
