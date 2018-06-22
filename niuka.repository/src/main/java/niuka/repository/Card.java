@@ -21,6 +21,7 @@ public class Card {
 	private String backImage;
 	private String remark;
 
+	private String oraginCardId;
 	private String sharedFrom;
 
 	private String expired;
@@ -148,6 +149,14 @@ public class Card {
 
 	public void setSharedFrom(String sharedFrom) {
 		this.sharedFrom = sharedFrom;
+	}
+
+	public String getOraginCardId() {
+		return oraginCardId;
+	}
+
+	public void setOraginCardId(String oraginCardId) {
+		this.oraginCardId = oraginCardId;
 	}
 
 }
