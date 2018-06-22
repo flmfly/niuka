@@ -15,7 +15,6 @@ public class RepositoryConfig {
 			public void configureRepositoryRestConfiguration(RepositoryRestConfiguration config) {
 				config.exposeIdsFor(User.class);
 				config.exposeIdsFor(Card.class);
-				config.exposeIdsFor(Shared.class);
 			}
 		};
 	}

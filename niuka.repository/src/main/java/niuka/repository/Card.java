@@ -21,6 +21,8 @@ public class Card {
 	private String backImage;
 	private String remark;
 
+	private String sharedFrom;
+
 	private String expired;
 
 	@CreatedDate
@@ -138,6 +140,14 @@ public class Card {
 
 	public void setRemark(String remark) {
 		this.remark = remark;
+	}
+
+	public String getSharedFrom() {
+		return sharedFrom;
+	}
+
+	public void setSharedFrom(String sharedFrom) {
+		this.sharedFrom = sharedFrom;
 	}
 
 }
