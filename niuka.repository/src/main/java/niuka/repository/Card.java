@@ -1,8 +1,8 @@
 package niuka.repository;
 
-import java.util.Date;
-
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
 
 public class Card {
 
@@ -19,10 +19,22 @@ public class Card {
 	private String password;
 	private String frontImage;
 	private String backImage;
+	private String remark;
 
-	private Date expired;
-	private Date createTime;
-	private Date lastUpdateTime;
+	private String expired;
+
+	@CreatedDate
+	private String createTime;
+	@LastModifiedDate
+	private String lastUpdateTime;
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
 
 	public String getUserId() {
 		return userId;
@@ -96,28 +108,36 @@ public class Card {
 		this.backImage = backImage;
 	}
 
-	public Date getCreateTime() {
-		return createTime;
-	}
-
-	public void setCreateTime(Date createTime) {
-		this.createTime = createTime;
-	}
-
-	public Date getLastUpdateTime() {
-		return lastUpdateTime;
-	}
-
-	public void setLastUpdateTime(Date lastUpdateTime) {
-		this.lastUpdateTime = lastUpdateTime;
-	}
-
-	public Date getExpired() {
+	public String getExpired() {
 		return expired;
 	}
 
-	public void setExpired(Date expired) {
+	public void setExpired(String expired) {
 		this.expired = expired;
+	}
+
+	public String getCreateTime() {
+		return createTime;
+	}
+
+	public void setCreateTime(String createTime) {
+		this.createTime = createTime;
+	}
+
+	public String getLastUpdateTime() {
+		return lastUpdateTime;
+	}
+
+	public void setLastUpdateTime(String lastUpdateTime) {
+		this.lastUpdateTime = lastUpdateTime;
+	}
+
+	public String getRemark() {
+		return remark;
+	}
+
+	public void setRemark(String remark) {
+		this.remark = remark;
 	}
 
 }

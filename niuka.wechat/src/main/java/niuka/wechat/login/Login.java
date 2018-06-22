@@ -3,24 +3,26 @@ package niuka.wechat.login;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.Date;
-
-import javax.net.ssl.HttpsURLConnection;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.google.gson.Gson;
 
 @SpringBootApplication
-@RestController
+@Controller
 public class Login {
 
 	@Value("${wechat.appid}")
@@ -38,8 +40,9 @@ public class Login {
 	@Value("${repository.user.url.create}")
 	private String userUrlCreate;
 
-	@RequestMapping(value = "/login/{code}", method = RequestMethod.GET, produces = "application/json;charset=UTF-8")
-	public String index(@PathVariable String code) {
+	@RequestMapping(value = "/wechat/login/{code}", method = RequestMethod.GET, produces = MediaType.TEXT_PLAIN_VALUE)
+	@ResponseBody
+	public String index(@PathVariable String code) throws Exception {
 		Result result = this.getResult(code);
 		String userId = "";
 		if (null != result && result.successed()) {
@@ -48,7 +51,15 @@ public class Login {
 		return userId;
 	}
 
-	private String getUserId(Result result) {
+	@RequestMapping(value = "/wechat/time", method = RequestMethod.GET, produces = MediaType.TEXT_PLAIN_VALUE)
+	@ResponseBody
+	public String time(@PathVariable String code) throws Exception {
+		return SDF.format(new Date());
+	}
+
+	private static final SimpleDateFormat SDF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+	private String getUserId(Result result) throws Exception {
 		// find user by openId
 		String userId = null;
 		User user = this.findUserByOpenId(result.getOpenid());
@@ -57,7 +68,7 @@ public class Login {
 			user.setOpenId(result.getOpenid());
 			user.setUnionid(result.getUnionid());
 
-			this.createUser(user);
+			user = this.createUser(user);
 			userId = user.getId();
 		} else {// TODO update user info
 			userId = user.getId();
@@ -65,15 +76,49 @@ public class Login {
 		return userId;
 	}
 
-	private User findUserByOpenId(String openId) {
+	private User findUserByOpenId(String openId) throws Exception {
 		User user = null;
 		InputStream is = null;
-		HttpsURLConnection conn = null;
+		HttpURLConnection conn = null;
 		try {
-			conn = (HttpsURLConnection) new URL(userUrlSearch + "?openId=" + openId).openConnection();
+			conn = (HttpURLConnection) new URL(userUrlSearch + "?openId=" + openId).openConnection();
 			conn.setRequestProperty("SessionKey", "44054f97-9929-4017-97c9-0becd4196283");
+
+			if (conn.getContentLength() > 0) {
+				is = conn.getInputStream();
+				user = GSON.fromJson(new InputStreamReader(is), User.class);
+			}
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
+		} finally {
+			if (null != is) {
+				try {
+					is.close();
+				} catch (IOException e) {
+				}
+			}
+			if (null != conn) {
+				conn.disconnect();
+			}
+		}
+		return user;
+	}
+
+	// Content-Type:application/json
+	private User createUser(User user) {
+		InputStream is = null;
+		HttpURLConnection conn = null;
+		try {
+			conn = (HttpURLConnection) new URL(userUrlCreate).openConnection();
+			conn.setRequestMethod("POST");
+			conn.setRequestProperty("Content-Type", "application/json");
+			conn.setRequestProperty("SessionKey", "44054f97-9929-4017-97c9-0becd4196283");
+			conn.setDoOutput(true);
+			user.setFirstLogin(SDF.format(new Date()));
+			conn.getOutputStream().write(GSON.toJson(user).getBytes());
+			conn.getOutputStream().flush();
 			is = conn.getInputStream();
-			user = GSON.fromJson(new InputStreamReader(is), User.class);
+			return GSON.fromJson(new InputStreamReader(is), User.class);
 		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -93,47 +138,13 @@ public class Login {
 		}
 		return user;
 	}
-	
-	
-
-	// Content-Type:application/json
-	private void createUser(User user) {
-		InputStream is = null;
-		HttpsURLConnection conn = null;
-		try {
-			conn = (HttpsURLConnection) new URL(userUrlCreate).openConnection();
-			conn.setRequestMethod("POST");
-			conn.setRequestProperty("Content-Type", "application/json");
-			conn.setRequestProperty("SessionKey", "44054f97-9929-4017-97c9-0becd4196283");
-			conn.getOutputStream().write(GSON.toJson(user).getBytes());
-			conn.getOutputStream().flush();
-			is = conn.getInputStream();
-			user = GSON.fromJson(new InputStreamReader(is), User.class);
-		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-			if (null != is) {
-				try {
-					is.close();
-				} catch (IOException e) {
-				}
-			}
-			if (null != conn) {
-				conn.disconnect();
-			}
-		}
-	}
 
 	private Result getResult(String code) {
 		Result result = null;
 		InputStream is = null;
-		HttpsURLConnection conn = null;
+		HttpURLConnection conn = null;
 		try {
-			conn = (HttpsURLConnection) new URL(url + code).openConnection();
+			conn = (HttpURLConnection) new URL(url + code).openConnection();
 			conn.setRequestProperty("SessionKey", "44054f97-9929-4017-97c9-0becd4196283");
 			is = conn.getInputStream();
 			result = GSON.fromJson(new InputStreamReader(is), Result.class);
@@ -226,8 +237,8 @@ public class Login {
 		private String country;
 		private String avatarUrl;
 
-		private Date firstLogin;
-		private Date lastActive;
+		private String firstLogin;
+		private String lastActive;
 
 		public String getOpenId() {
 			return openId;
@@ -301,19 +312,19 @@ public class Login {
 			this.avatarUrl = avatarUrl;
 		}
 
-		public Date getFirstLogin() {
+		public String getFirstLogin() {
 			return firstLogin;
 		}
 
-		public void setFirstLogin(Date firstLogin) {
+		public void setFirstLogin(String firstLogin) {
 			this.firstLogin = firstLogin;
 		}
 
-		public Date getLastActive() {
+		public String getLastActive() {
 			return lastActive;
 		}
 
-		public void setLastActive(Date lastActive) {
+		public void setLastActive(String lastActive) {
 			this.lastActive = lastActive;
 		}
 

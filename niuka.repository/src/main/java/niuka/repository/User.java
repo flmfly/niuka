@@ -1,7 +1,5 @@
 package niuka.repository;
 
-import java.util.Date;
-
 import org.springframework.data.annotation.Id;
 
 public class User {
@@ -20,8 +18,16 @@ public class User {
 	private String country;
 	private String avatarUrl;
 
-	private Date firstLogin;
-	private Date lastActive;
+	private String firstLogin;
+	private String lastActive;
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
 
 	public String getOpenId() {
 		return openId;
@@ -95,19 +101,19 @@ public class User {
 		this.avatarUrl = avatarUrl;
 	}
 
-	public Date getFirstLogin() {
+	public String getFirstLogin() {
 		return firstLogin;
 	}
 
-	public void setFirstLogin(Date firstLogin) {
+	public void setFirstLogin(String firstLogin) {
 		this.firstLogin = firstLogin;
 	}
 
-	public Date getLastActive() {
+	public String getLastActive() {
 		return lastActive;
 	}
 
-	public void setLastActive(Date lastActive) {
+	public void setLastActive(String lastActive) {
 		this.lastActive = lastActive;
 	}
 

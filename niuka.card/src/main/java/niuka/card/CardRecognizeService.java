@@ -29,10 +29,14 @@ import org.bytedeco.javacpp.opencv_core.Mat;
 import org.bytedeco.javacpp.opencv_core.MatVector;
 import org.bytedeco.javacpp.opencv_core.Rect;
 import org.bytedeco.javacpp.opencv_core.Size;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class CardRecognizeService {
+
+	@Autowired
+	private TencentOCRServcie tencentOCRServcie;
 
 	public RecognizeResult recognize(String filePath) throws IOException {
 
@@ -99,14 +103,24 @@ public class CardRecognizeService {
 			Mat aha = new Mat(src, bestRect);
 
 			File tempFile = File.createTempFile(UUID.randomUUID().toString(), ".jpg");
-			
-			resize(aha, aha , new Size(856, 540));
 
 			imwrite(tempFile.getAbsolutePath(), aha);
-			
-			//856*540
+
+			RecognizeResult ocr = this.tencentOCRServcie
+					.ocr(Base64.encodeBase64String(FileUtils.readFileToByteArray(tempFile)));
+			if (null != ocr.getMemberNumber()) {
+				rr.setMemberNumber(ocr.getMemberNumber());
+			}
+
+			resize(aha, aha, new Size(856, 540));
+
+			imwrite(tempFile.getAbsolutePath(), aha);
+
+			// 856*540
 
 			rr.setImg(Base64.encodeBase64String(FileUtils.readFileToByteArray(tempFile)));
+
+			tempFile.delete();
 		}
 
 		return rr;
